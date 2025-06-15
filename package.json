@@ -2,28 +2,26 @@
   "name": "querysense",
   "version": "1.0.0",
   "description": "QuerySense - Internal Knowledge Assistant",
-  "private": true,
-  "workspaces": [
+  "private": true,  "workspaces": [
     "frontend",
     "backend/realtime-service",
     "browser-extension"
-  ],
-  "scripts": {
-    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+  ],"scripts": {
+    "dev": "npm run dev:frontend",
     "dev:frontend": "cd frontend && npm run dev",
-    "dev:backend": "cd backend/api-server && cargo run",
-    "dev:ai": "cd backend/ai-service && python -m uvicorn main:app --reload",
-    "dev:realtime": "cd backend/realtime-service && npm run dev",
-    "build": "npm run build:frontend && npm run build:backend",
+    "dev:backend": "echo \"Backend not ready yet - Phase 2\"",
+    "dev:ai": "echo \"AI service not ready yet - Phase 2\"",
+    "dev:realtime": "echo \"Realtime service not ready yet - Phase 3\"",
+    "build": "npm run build:frontend",
     "build:frontend": "cd frontend && npm run build",
-    "build:backend": "cd backend/api-server && cargo build --release",
-    "test": "npm run test:frontend && npm run test:backend",
+    "build:backend": "echo \"Backend not ready yet\"",
+    "test": "npm run test:frontend",
     "test:frontend": "cd frontend && npm test",
-    "test:backend": "cd backend/api-server && cargo test",
+    "test:backend": "echo \"Backend tests not ready yet\"",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
     "setup": "npm run install:all && npm run docker:up",
-    "install:all": "npm install && cd frontend && npm install && cd ../backend/realtime-service && npm install"
+    "install:all": "npm install && cd frontend && npm install"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

@@ -35,42 +35,51 @@ Data Layer
 
 ## Frontend Technology Stack
 
-Built with Next.js 14, TypeScript, and Tailwind CSS for modern web development standards.
+Built with Vite, React 18, and TypeScript for modern, fast development and optimal performance.
 
 **Core Technologies:**
-- Framework: Next.js 14 with App Router and Server Components
-- Language: TypeScript 5.3 with strict mode and advanced type safety
-- Styling: Tailwind CSS 3.4 with HeadlessUI components and Framer Motion
-- State Management: Zustand with React Query for optimistic updates
-- Forms: React Hook Form with Zod validation
-- Testing: Vitest, Testing Library, and Playwright for end-to-end testing
+- Build Tool: Vite 5.4 with optimized development server and build pipeline
+- Framework: React 18 with modern hooks and concurrent features
+- Language: TypeScript 5.5 with strict mode and advanced type safety
+- Styling: Tailwind CSS 3.4 with custom design tokens and responsive utilities
+- Icons: Lucide React for consistent, modern iconography
+- State Management: React hooks with local component state
+- Development: ESLint 9 with TypeScript integration for code quality
 
 **User Interface Design**
 
-The interface focuses on clean, accessible design with smooth interactions:
+The interface focuses on clean, Apple-inspired design with smooth interactions:
 
 ```typescript
-// Micro-interactions with physics-based animations
-const questionInputVariants = {
-  idle: { scale: 1, borderColor: "#e2e8f0" },
-  focused: { 
-    scale: 1.02, 
-    borderColor: "#3b82f6",
-    boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.1)",
-    transition: { type: "spring", stiffness: 300, damping: 30 }
-  },
-  typing: {
-    borderColor: "#10b981",
-    background: "linear-gradient(90deg, #f0f9ff 0%, #ecfeff 100%)"
-  }
+// Clean component architecture with TypeScript
+interface QueryStudioProps {
+  activeTab: 'search' | 'recent' | 'insights';
+  onTabChange: (tab: string) => void;
 }
+
+const QueryStudio: React.FC<QueryStudioProps> = ({ activeTab, onTabChange }) => {
+  return (
+    <section className="py-20 px-6">
+      <div className="max-w-4xl mx-auto">
+        {/* Apple-inspired tab navigation */}
+        <div className="flex justify-center mb-12">
+          <div className="relative flex bg-black/5 p-1 rounded-full backdrop-blur-sm">
+            {/* Smooth background slider */}
+            <div className={`absolute top-1 h-9 bg-white rounded-full shadow-sm transition-all duration-300`} />
+            {/* Tab buttons with smooth interactions */}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
 ```
 
 **Performance Targets:**
-- Bundle Size: Under 100KB initial load
-- Largest Contentful Paint: Under 1.2 seconds
-- Cumulative Layout Shift: Less than 0.1
-- Time to Interactive: Under 2 seconds on 3G networks
+- Bundle Size: Under 200KB initial load (Vite optimized)
+- First Contentful Paint: Under 1.0 seconds
+- Time to Interactive: Under 1.5 seconds
+- Development Server: Hot reload under 100ms
 
 ---
 
@@ -165,26 +174,26 @@ Kubernetes-based infrastructure with GitOps deployment strategies for reliable, 
 
 **Deployment Configuration:**
 ```yaml
-# Blue-green deployment with automated rollback
-apiVersion: argoproj.io/v1alpha1
-kind: Rollout
+# Container deployment with automated scaling
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: neuroquery-api
+  name: querysense-frontend
 spec:
-  strategy:
-    canary:
-      analysis:
-        templates:
-        - templateName: success-rate
-        args:
-        - name: service-name
-          value: neuroquery-api
-      steps:
-      - setWeight: 10
-      - pause: {duration: 2m}
-      - setWeight: 50
-      - pause: {duration: 5m}
-      - setWeight: 100
+  replicas: 3
+  selector:
+    matchLabels:
+      app: querysense-frontend
+  template:
+    spec:
+      containers:
+      - name: frontend
+        image: querysense/frontend:latest
+        ports:
+        - containerPort: 5173
+        env:
+        - name: VITE_API_URL
+          value: "https://api.querysense.com"
 ```
 
 ---
@@ -495,8 +504,44 @@ The technical architecture demonstrates advanced software engineering across mul
 
 ## Getting Started
 
-This project represents a comprehensive blueprint for building enterprise-grade knowledge management software. The implementation combines cutting-edge technology with practical business solutions, designed to be both technically impressive and commercially viable.
+This project represents a comprehensive implementation of enterprise-grade knowledge management software using modern web technologies.
 
-Development can begin with local setup using the specified technology stack, focusing first on core functionality before expanding to advanced features. The modular architecture allows for incremental development and testing, ensuring each component meets the high standards outlined in this specification.
+**Quick Start:**
+
+1. **Clone and Setup**
+   ```bash
+   git clone <repository-url>
+   cd QuerySense
+   npm install
+   ```
+
+2. **Frontend Development**
+   ```bash
+   npm run dev:frontend
+   # Starts Vite dev server at http://localhost:5173
+   ```
+
+3. **Build for Production**
+   ```bash
+   npm run build:frontend
+   # Creates optimized production build
+   ```
+
+**Project Structure:**
+```
+QuerySense/
+├── frontend/           # Vite + React + TypeScript frontend
+│   ├── src/
+│   │   ├── components/ # React components
+│   │   ├── App.tsx     # Main application
+│   │   └── main.tsx    # Application entry point
+│   ├── index.html      # HTML template
+│   └── vite.config.ts  # Vite configuration
+├── backend/            # Backend services (future development)
+├── docs/               # Documentation
+└── package.json        # Root package configuration
+```
+
+The modular architecture allows for incremental development and testing, ensuring each component meets the high standards outlined in this specification.
 
 Built by SYED with focus on technical excellence and practical business impact.
