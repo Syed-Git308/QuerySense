@@ -1,0 +1,37 @@
+{
+  "name": "querysense",
+  "version": "1.0.0",
+  "description": "QuerySense - Internal Knowledge Assistant",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend/realtime-service",
+    "browser-extension"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend/api-server && cargo run",
+    "dev:ai": "cd backend/ai-service && python -m uvicorn main:app --reload",
+    "dev:realtime": "cd backend/realtime-service && npm run dev",
+    "build": "npm run build:frontend && npm run build:backend",
+    "build:frontend": "cd frontend && npm run build",
+    "build:backend": "cd backend/api-server && cargo build --release",
+    "test": "npm run test:frontend && npm run test:backend",
+    "test:frontend": "cd frontend && npm test",
+    "test:backend": "cd backend/api-server && cargo test",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "setup": "npm run install:all && npm run docker:up",
+    "install:all": "npm install && cd frontend && npm install && cd ../backend/realtime-service && npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "author": "SYED",
+  "license": "MIT"
+}
