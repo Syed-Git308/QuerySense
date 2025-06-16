@@ -55,7 +55,7 @@ const UploadPanel: React.FC = () => {
         formData.append('files', file);
       });
 
-      const response = await fetch('http://localhost:3001/api/upload', {
+      const response = await fetch('http://localhost:8001/upload', {
         method: 'POST',
         body: formData,
       });
@@ -63,20 +63,20 @@ const UploadPanel: React.FC = () => {
       const result = await response.json();
 
       if (response.ok) {
-        // Update file statuses based on API response
+        // result is already the array of uploaded documents
         setFiles(prev => prev.map(file => {
-          const uploadResult = result.results.find((r: any) => r.filename === file.name);
+          const uploadResult = result.find((r: any) => r.filename === file.name);
           if (uploadResult) {
             return {
               ...file,
               id: uploadResult.id || file.id,
-              status: uploadResult.status === 'completed' ? 'completed' : 'error' as const
+              status: 'completed' as const
             };
           }
           return file;
         }));
 
-        console.log(`Successfully uploaded ${result.results.length} files`);
+        console.log(`Successfully uploaded ${result.length} files`);
       } else {
         throw new Error(result.error || 'Upload failed');
       }

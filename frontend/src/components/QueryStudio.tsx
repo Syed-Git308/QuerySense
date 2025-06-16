@@ -2,22 +2,21 @@ import React, { useState } from 'react';
 import { Search, Clock, TrendingUp, Loader } from 'lucide-react';
 
 interface QueryResult {
-  document: {
-    id: string;
-    filename: string;
-    uploadedAt: string;
-  };
-  score: number;
-  relevance: number;
-  matchedTerms: string[];
-  snippets: string[];
+  id: string;
+  filename: string;
+  content: string;
+  similarity: number;
+  file_type: string;
+  upload_timestamp: string;
 }
 
 interface QueryResponse {
   query: string;
+  answer?: string;  // Generated answer
+  answer_source?: string;  // Source filename for the answer
   results: QueryResult[];
-  responseTime: number;
-  totalDocuments: number;
+  total_results: number;
+  response_time_ms: number;
   error?: string;
 }
 
@@ -27,12 +26,36 @@ const QueryStudio: React.FC = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<QueryResult[]>([]);
   const [responseTime, setResponseTime] = useState<number | null>(null);
+  const [generatedAnswer, setGeneratedAnswer] = useState<string | null>(null);
+  const [answerSource, setAnswerSource] = useState<string | null>(null);
+  const [showSourceModal, setShowSourceModal] = useState(false);
+  const [sourceContent, setSourceContent] = useState<string | null>(null);
   const [recentQueries, setRecentQueries] = useState<string[]>([
     'What is our Q4 revenue target?',
     'How to onboard new team members?',
     'API integration best practices',
     'Performance review process',
   ]);
+
+  const handleViewSource = async (filename: string) => {
+    try {
+      console.log('Fetching source document:', filename);
+      // Fetch the document content from the backend
+      const response = await fetch(`http://localhost:8001/documents/${encodeURIComponent(filename)}/content`);
+      
+      if (response.ok) {
+        const document = await response.json();
+        setSourceContent(document.content || 'Document content not available');
+        setShowSourceModal(true);
+      } else {
+        console.error('Document not found:', filename);
+        alert('Document not found');
+      }
+    } catch (error) {
+      console.error('Error fetching document:', error);
+      alert('Error fetching document');
+    }
+  };
 
   const handleSearch = async (searchQuery: string = query) => {
     if (!searchQuery.trim()) {
@@ -43,8 +66,8 @@ const QueryStudio: React.FC = () => {
     console.log('Starting search for:', searchQuery);
     setIsSearching(true);
     try {
-      console.log('Making API call to:', 'http://localhost:3001/api/query');
-      const response = await fetch('http://localhost:3001/api/query', {
+      console.log('Making API call to:', 'http://localhost:8001/query');
+      const response = await fetch('http://localhost:8001/query', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -61,7 +84,9 @@ const QueryStudio: React.FC = () => {
 
       if (response.ok) {
         setSearchResults(data.results);
-        setResponseTime(data.responseTime);
+        setResponseTime(data.response_time_ms);
+        setGeneratedAnswer(data.answer || null);
+        setAnswerSource(data.answer_source || null);
         
         // Add to recent queries if not already there
         if (!recentQueries.includes(searchQuery)) {
@@ -181,72 +206,46 @@ const QueryStudio: React.FC = () => {
               </button>
             </div>
             
-            {/* Search Results */}
-            {searchResults.length > 0 && (
-              <div className="mt-8 space-y-4">
-                {/* Search Header */}
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-semibold tracking-tight text-black">Search Results</h3>
-                  {responseTime && (
-                    <span className="text-sm text-gray-400">
-                      Found {searchResults.length} result{searchResults.length !== 1 ? 's' : ''} in {responseTime}ms
-                    </span>
-                  )}
-                </div>
-                
-                {/* Results Cards */}
-                <div className="space-y-4">
-                  {searchResults.map((result) => (
-                    <div
-                      key={result.document.id}
-                      className="group bg-[#f9f9f9] rounded-2xl p-4 md:p-6 lg:p-8 shadow-md hover:shadow-lg transition-all duration-200 ease-in-out hover:scale-[1.01] cursor-pointer"
-                    >
-                      {/* File Header */}
-                      <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-4 gap-2">
-                        <h4 className="text-lg font-semibold tracking-tight text-black">
-                          {result.document.filename}
-                        </h4>
-                        <div className="flex items-center space-x-2 text-sm text-gray-500 md:text-right">
-                          <span>Relevance: {Math.round(result.relevance * 100)}%</span>
-                          <span className="hidden md:inline">•</span>
-                          <span>{new Date(result.document.uploadedAt).toLocaleDateString()}</span>
-                        </div>
-                      </div>
-                      
-                      {/* Document Preview Text */}
-                      {result.snippets.length > 0 && (
-                        <div className="space-y-4 mb-6">
-                          {result.snippets.map((snippet, snippetIndex) => (
-                            <div key={snippetIndex} className="relative">
-                              <p
-                                className="text-gray-700 leading-relaxed text-base line-clamp-4"
-                                dangerouslySetInnerHTML={{
-                                  __html: snippet.replace(/\*\*(.*?)\*\*/g, '<strong class="bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded-md font-medium">$1</strong>')
-                                }}
-                              />
-                              {/* Subtle fade for long content */}
-                              <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-[#f9f9f9] to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      
-                      {/* Tags */}
-                      {result.matchedTerms.length > 0 && (
-                        <div className="flex flex-wrap gap-2">
-                          {result.matchedTerms.map((term, termIndex) => (
-                            <span
-                              key={termIndex}
-                              className="inline-flex items-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-700 text-xs px-3 py-1.5 font-medium hover:shadow-sm hover:scale-[1.02] transition-all duration-150 ease-in-out"
-                            >
-                              {term}
-                            </span>
-                          ))}
-                        </div>
-                      )}
+            {/* AI Answer Display */}
+            {generatedAnswer && (
+              <div className="mt-8">
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-6 shadow-sm">
+                  <div className="flex items-start space-x-3">
+                    <div className="flex-shrink-0 w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                      <span className="text-white text-sm font-semibold">AI</span>
                     </div>
-                  ))}
+                    <div className="flex-1">
+                      <h4 className="text-lg font-semibold text-blue-900 mb-2">Answer</h4>
+                      <p className="text-blue-800 leading-relaxed">{generatedAnswer}</p>
+                      <div className="flex items-center justify-between mt-3">
+                        {answerSource && (
+                          <button
+                            onClick={() => handleViewSource(answerSource)}
+                            className="text-sm text-blue-600 hover:text-blue-800 underline cursor-pointer font-medium transition-colors"
+                          >
+                            📄 Source: {answerSource}
+                          </button>
+                        )}
+                        {responseTime && (
+                          <p className="text-sm text-blue-600">
+                            Answered in {responseTime}ms
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
+              </div>
+            )}
+
+            {/* No Results Message */}
+            {!generatedAnswer && searchResults.length === 0 && (
+              <div className="mt-8 text-center py-12">
+                <div className="text-gray-400 mb-4">
+                  <Search className="w-16 h-16 mx-auto" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No results found</h3>
+                <p className="text-gray-500">Try rephrasing your question or using different keywords.</p>
               </div>
             )}
           </div>
@@ -290,6 +289,36 @@ const QueryStudio: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Source Document Modal */}
+      {showSourceModal && sourceContent && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-6 max-w-4xl max-h-[80vh] overflow-hidden shadow-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-semibold text-gray-900">Source Document: {answerSource}</h3>
+              <button
+                onClick={() => setShowSourceModal(false)}
+                className="text-gray-500 hover:text-gray-700 text-2xl font-semibold"
+              >
+                ×
+              </button>
+            </div>
+            <div className="overflow-y-auto max-h-[60vh] bg-gray-50 rounded-lg p-4">
+              <pre className="whitespace-pre-wrap text-sm text-gray-700 font-mono">
+                {sourceContent}
+              </pre>
+            </div>
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={() => setShowSourceModal(false)}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 };

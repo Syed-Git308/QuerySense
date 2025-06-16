@@ -1,0 +1,44 @@
+# QuerySense Phase 2: AI-Powered Semantic Search
+# High-performance local AI with your RTX 4070 Ti
+
+# Core FastAPI framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+pydantic-settings==2.1.0
+
+# AI & Machine Learning (GPU accelerated)
+# Note: Install PyTorch first with: pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+sentence-transformers==2.2.2
+transformers==4.35.0
+accelerate==0.24.0
+huggingface-hub>=0.16.4,<1.0
+
+# AI Answer Generation
+torch>=2.0.0
+einops>=0.7.0
+openai>=1.0.0
+tiktoken>=0.5.0
+
+# Vector Database
+psycopg2-binary==2.9.7
+pgvector==0.2.4
+sqlalchemy==2.0.23
+alembic==1.12.1
+
+# Data Processing
+numpy==1.24.3
+pandas==2.1.3
+python-docx==0.8.11
+openpyxl==3.1.2
+
+# Utilities
+python-dotenv==1.0.0
+pydantic==2.5.0
+httpx==0.25.2
+aiofiles==23.2.1
+
+# Development
+pytest==7.4.3
+pytest-asyncio==0.21.1
+black==23.10.1
