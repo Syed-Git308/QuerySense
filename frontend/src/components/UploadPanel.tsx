@@ -34,8 +34,11 @@ const UploadPanel: React.FC = () => {
     }
   };
 
-  const handleFiles = (fileList: FileList) => {
-    const newFiles = Array.from(fileList).map(file => ({
+  const handleFiles = async (fileList: FileList) => {
+    const filesToUpload = Array.from(fileList);
+    
+    // Add files to UI with uploading status
+    const newFiles = filesToUpload.map(file => ({
       id: Math.random().toString(36).substr(2, 9),
       name: file.name,
       size: formatFileSize(file.size),
@@ -45,14 +48,51 @@ const UploadPanel: React.FC = () => {
 
     setFiles(prev => [...prev, ...newFiles]);
 
-    // Simulate upload completion
-    newFiles.forEach(file => {
-      setTimeout(() => {
-        setFiles(prev => prev.map(f => 
-          f.id === file.id ? { ...f, status: 'completed' } : f
-        ));
-      }, 1000 + Math.random() * 2000);
-    });
+    // Upload files to API
+    try {
+      const formData = new FormData();
+      filesToUpload.forEach(file => {
+        formData.append('files', file);
+      });
+
+      const response = await fetch('http://localhost:3001/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        // Update file statuses based on API response
+        setFiles(prev => prev.map(file => {
+          const uploadResult = result.results.find((r: any) => r.filename === file.name);
+          if (uploadResult) {
+            return {
+              ...file,
+              id: uploadResult.id || file.id,
+              status: uploadResult.status === 'completed' ? 'completed' : 'error' as const
+            };
+          }
+          return file;
+        }));
+
+        console.log(`Successfully uploaded ${result.results.length} files`);
+      } else {
+        throw new Error(result.error || 'Upload failed');
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      
+      // Mark all files as error
+      setFiles(prev => prev.map(file => 
+        newFiles.some(nf => nf.id === file.id) 
+          ? { ...file, status: 'error' as const }
+          : file
+      ));
+
+      // Show error to user (you might want to add a toast notification here)
+      alert(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   };
 
   const formatFileSize = (bytes: number): string => {
@@ -91,7 +131,7 @@ const UploadPanel: React.FC = () => {
             ref={inputRef}
             type="file"
             multiple
-            accept=".pdf,.txt,.md,.doc,.docx"
+            accept=".txt,.md,.doc,.docx,.xls,.xlsx,.csv,.json"
             onChange={(e) => e.target.files && handleFiles(e.target.files)}
             className="hidden"
           />
@@ -101,7 +141,9 @@ const UploadPanel: React.FC = () => {
             Drop files here or click to upload
           </h3>
           <p className="text-black/60 mb-8 font-medium">
-            Supports PDF, TXT, MD, DOC, DOCX files up to 10MB each
+            Supports TXT, MD, DOC, DOCX, XLS, XLSX, CSV, JSON files up to 10MB each
+            <br />
+            <span className="text-sm text-black/40">PDF support coming in Phase 2!</span>
           </p>
 
           <button

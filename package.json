@@ -2,14 +2,16 @@
   "name": "querysense",
   "version": "1.0.0",
   "description": "QuerySense - Internal Knowledge Assistant",
-  "private": true,  "workspaces": [
+  "private": true,
+  "workspaces": [
     "frontend",
     "backend/realtime-service",
     "browser-extension"
-  ],"scripts": {
+  ],
+  "scripts": {
     "dev": "npm run dev:frontend",
     "dev:frontend": "cd frontend && npm run dev",
-    "dev:backend": "echo \"Backend not ready yet - Phase 2\"",
+    "dev:backend": "cd backend/api-server && npm run dev",
     "dev:ai": "echo \"AI service not ready yet - Phase 2\"",
     "dev:realtime": "echo \"Realtime service not ready yet - Phase 3\"",
     "build": "npm run build:frontend",
